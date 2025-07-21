@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signal Extraction</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="mt-5">Signal Extraction from Images/PDFs</h1>
+        <form action="" method="post" enctype="multipart/form-data" class="mt-4">
+            <div class="form-group">
+                <label for="file">Upload Image or PDF:</label>
+                <input type="file" class="form-control-file" id="file" name="file" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Extract Signals</button>
+        </form>
+
+        {% if signals %}
+        <h2 class="mt-5">Captured Signals:</h2>
+        <ul class="list-group mt-3">
+            {% for signal in signals %}
+            <li class="list-group-item">
+                <div class="row flex">
+                    <div class="col">
+                        <img src="{{ url_for('static', filename=signal.image_path) }}" alt="">
+                    </div>
+                    <div class="col">
+                        <strong>Text:</strong> {{ signal.text }} <br>
+                        <strong>Rectangle:</strong> {{ signal.rect }}
+                    </div>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+</body>
+
+</html>
