@@ -35,29 +35,41 @@ def extract_signals_from_file(file_path):
             mask_cleaned, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
         )
 
+      
         signals = []
         debug_image = image.copy()
         for cnt in contours:
             x, y, w, h = cv2.boundingRect(cnt)
             if w > 10 and h > 10:  # filter small rectangles
                 roi = image[y : y + h, x : x + w]
-                # Enhance and rotate image
-                # roi = cv2.threshold(roi, 127, 230, cv2.THRESH_BINARY)[1]
-                roi = cv2.rotate(roi, cv2.ROTATE_90_COUNTERCLOCKWISE)
+                # Elimina el color amarillo fuera del rectángulo usando la máscara
+                roi_mask = cv2.bitwise_not(mask_cleaned[y : y + h, x : x + w])
+                roi = cv2.bitwise_not(roi, roi, mask=roi_mask)
 
                 # Save each ROI in a new file
                 roi_filename = f"roi_{x}_{y}_{w}_{h}.png"
+                
+                # Upscale ROI for better OCR
+                roi = cv2.resize(roi, None, fx=16, fy=16, interpolation=cv2.INTER_CUBIC)
+
+                # Enhance and rotate image
+                roi = cv2.threshold(roi, 150, 255, cv2.THRESH_BINARY)[1]
+                roi = cv2.rotate(roi, cv2.ROTATE_90_COUNTERCLOCKWISE)
+
                 cv2.imwrite("uploads/" + roi_filename, roi)
+
                 # Recognize text in any direction using Tesseract's OCR engine mode and orientation/segmentation mode
-                custom_config = r"--oem 3 --psm 6"
+                custom_config = r"--oem 3"
                 text = pytesseract.image_to_string(roi, config=custom_config)
                 signals.append(
-                    {"rect": (x, y, w, h), "text": text.strip().replace("\n", " "), "image_path": roi_filename}
+                    {
+                        "rect": (x, y, w, h),
+                        "text": text.strip().replace("\n", " "),
+                        "image_path": roi_filename,
+                    }
                 )
                 # Draw rectangle for debugging
                 cv2.rectangle(debug_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
-        # Save the debug image with rectangles
-        cv2.imwrite("debug_detected_rectangles.png", debug_image)
         return signals
 
     signals = []

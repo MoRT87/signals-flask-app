@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Entornos virtuales
+venv/
+env/
+
+# Archivos de configuración y entorno
+.env
+
+# Archivos de base de datos
+*.db
+*.sqlite3
+
+# Archivos generados por la app
+uploads/
+debug_detected_rectangles.png
+roi_*.png
+
+# VSCode
+.vscode/
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Docker
+*.log
