@@ -4,6 +4,7 @@ from pdf2image import convert_from_path
 import numpy as np
 
 import pytesseract
+import re
 
 
 def extract_signals_from_file(file_path):
@@ -34,10 +35,8 @@ def extract_signals_from_file(file_path):
         contours, _ = cv2.findContours(
             mask_cleaned, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
         )
-
-      
+        threshold = None
         signals = []
-        debug_image = image.copy()
         for cnt in contours:
             x, y, w, h = cv2.boundingRect(cnt)
             if w > 10 and h > 10:  # filter small rectangles
@@ -46,32 +45,31 @@ def extract_signals_from_file(file_path):
                 roi_filename = f"roi_{x}_{y}_{w}_{h}.png"
                 cv2.imwrite("uploads/" + roi_filename, roi)
                 # Elimina el color amarillo fuera del rectángulo usando la máscara
-                roi_mask = cv2.bitwise_not(mask_cleaned[y : y + h, x : x + w])
-                roi = cv2.bitwise_not(roi, roi, mask=roi_mask)
+                # roi_mask = cv2.bitwise_not(mask_cleaned[y : y + h, x : x + w])
+                # roi = cv2.bitwise_not(roi, roi, mask=roi_mask)
 
-                
-                
                 # Upscale ROI for better OCR
                 roi = cv2.resize(roi, None, fx=16, fy=16, interpolation=cv2.INTER_CUBIC)
-
+                # if(threshold == None):
+                #     threshold = detect_best_transformation(roi)
                 # Enhance and rotate image
-                roi = cv2.threshold(roi, 150, 255, cv2.THRESH_BINARY)[1]
+                roi = cv2.threshold(roi, 150 if (threshold== None) else threshold[0], 255 if (threshold== None) else threshold[1], cv2.THRESH_BINARY)[1]
                 roi = cv2.rotate(roi, cv2.ROTATE_90_COUNTERCLOCKWISE)
-
-                
 
                 # Recognize text in any direction using Tesseract's OCR engine mode and orientation/segmentation mode
                 custom_config = r"--oem 3"
                 text = pytesseract.image_to_string(roi, config=custom_config)
+                
                 signals.append(
                     {
                         "rect": (x, y, w, h),
                         "text": text.strip().replace("\n", " "),
                         "image_path": roi_filename,
+                        "threshold": threshold
                     }
                 )
                 # Draw rectangle for debugging
-                cv2.rectangle(debug_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+               # cv2.rectangle(debug_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
         return signals
 
     signals = []
@@ -88,3 +86,26 @@ def extract_signals_from_file(file_path):
             signals.extend(extract_rectangles_and_text(image))
 
     return signals
+
+#function to detect the best image transformation for OCR
+def detect_best_transformation(image):
+    """
+    Detects the best image threshold values for OCR by searching for a specific pattern.
+    Args:
+        image (numpy.ndarray): Input image.
+    Returns:
+        tuple: (threshold1, threshold2) values.
+    """
+    # Use numpy to efficiently generate threshold pairs
+    thresholds1 = np.arange(100, 256, 10)
+    thresholds2 = np.arange(200, 256, 10)
+
+    for i in thresholds1:
+        for j in thresholds2:
+            if i >= j:
+                continue
+            _, transformed = cv2.threshold(image, i, j, cv2.THRESH_BINARY)
+            text = pytesseract.image_to_string(transformed)
+            if re.search(r"TSA\s\d{3}\+\d{2}", text):
+                return (i, j)
+    return None

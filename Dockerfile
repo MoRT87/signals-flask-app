@@ -12,8 +12,7 @@ RUN pip install --upgrade pip
 RUN pip install -r ./requirements.txt
 
 # Instala Tesseract OCR
-RUN apt-get update && apt-get install -y tesseract-ocr && rm -rf /var/lib/apt/lists/*
-RUN apt-get update && apt-get install ffmpeg libsm6 libxext6 -y
+RUN apt-get update && apt-get install -y tesseract-ocr poppler-utils ffmpeg libsm6 libxext6 && rm -rf /var/lib/apt/lists/*
 
 # Copia los archivos del proyecto
 COPY ./app/* /app/

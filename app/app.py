@@ -26,19 +26,5 @@ def index():
             file_path = os.path.join('uploads', file.filename)
             file.save(file_path)
             signals = extract_signals_from_file(file_path)
-            os.remove(file_path)  # Clean up the uploaded file after processing
+           # os.remove(file_path)  # Clean up the uploaded file after processing
     return render_template('index.html', signals=signals)
-
-@app.route('/upload', methods=['POST'])
-def upload():
-    if 'file' not in request.files:
-        return redirect(request.url)
-    file = request.files['file']
-    if file.filename == '':
-        return redirect(request.url)
-    if file:
-        file_path = os.path.join('uploads', file.filename)
-        file.save(file_path)
-        signals = extract_signals_from_file(file_path)
-        os.remove(file_path)  # Clean up the uploaded file after processing
-        return render_template('index.html', signals=signals)
