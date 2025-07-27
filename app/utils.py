@@ -42,12 +42,14 @@ def extract_signals_from_file(file_path):
             x, y, w, h = cv2.boundingRect(cnt)
             if w > 10 and h > 10:  # filter small rectangles
                 roi = image[y : y + h, x : x + w]
+                # Save each ROI in a new file
+                roi_filename = f"roi_{x}_{y}_{w}_{h}.png"
+                cv2.imwrite("uploads/" + roi_filename, roi)
                 # Elimina el color amarillo fuera del rectángulo usando la máscara
                 roi_mask = cv2.bitwise_not(mask_cleaned[y : y + h, x : x + w])
                 roi = cv2.bitwise_not(roi, roi, mask=roi_mask)
 
-                # Save each ROI in a new file
-                roi_filename = f"roi_{x}_{y}_{w}_{h}.png"
+                
                 
                 # Upscale ROI for better OCR
                 roi = cv2.resize(roi, None, fx=16, fy=16, interpolation=cv2.INTER_CUBIC)
@@ -56,7 +58,7 @@ def extract_signals_from_file(file_path):
                 roi = cv2.threshold(roi, 150, 255, cv2.THRESH_BINARY)[1]
                 roi = cv2.rotate(roi, cv2.ROTATE_90_COUNTERCLOCKWISE)
 
-                cv2.imwrite("uploads/" + roi_filename, roi)
+                
 
                 # Recognize text in any direction using Tesseract's OCR engine mode and orientation/segmentation mode
                 custom_config = r"--oem 3"
