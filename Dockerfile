@@ -1,30 +1,36 @@
 # Usa una imagen oficial de Python
 FROM python:3.11-slim
 
+# Instala dependencias del sistema y limpia cache
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends \
+		tesseract-ocr poppler-utils ffmpeg libsm6 libxext6 \
+	&& rm -rf /var/lib/apt/lists/*
+
 # Establece el directorio de trabajo
 WORKDIR /app
 
-# Copia el archivo de requerimientos
-COPY requirements.txt /app/
+# Copia solo requirements.txt primero para aprovechar cache
+COPY requirements.txt ./
 
-# Instala las dependencias
-RUN pip install --upgrade pip
-RUN pip install -r ./requirements.txt
+# Instala dependencias de Python y limpia cache
+RUN pip install --upgrade pip \
+	&& pip install --no-cache-dir -r requirements.txt \
+	&& rm -rf ~/.cache/pip
 
-# Instala Tesseract OCR
-RUN apt-get update && apt-get install -y tesseract-ocr poppler-utils ffmpeg libsm6 libxext6 && rm -rf /var/lib/apt/lists/*
+# Copia el resto de la aplicación
+COPY app/ ./app/
 
-# Copia los archivos del proyecto
-COPY ./app/* /app/
+# Crea el directorio uploads y da permisos
+RUN mkdir -p ./app/uploads && chmod 777 ./app/uploads
 
-# Crea el directorio uploads si no existe y dale permisos de escritura
-RUN mkdir -p /app/uploads && chmod 777 /app/uploads
+# Copia las plantillas
+COPY app/templates ./app/templates
 
-COPY ./app/templates /app/templates
-# Expone el puerto en el que corre Flask
+# Expone el puerto de Flask
 EXPOSE 5000
 
-# Variable de entorno para Flask
+# Variables de entorno para Flask
 ENV FLASK_APP=app
 ENV FLASK_RUN_HOST=0.0.0.0
 
