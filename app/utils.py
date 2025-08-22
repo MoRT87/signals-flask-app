@@ -6,8 +6,20 @@ import numpy as np
 import pytesseract
 import re
 
+expression = re.compile(r"STA[\.,]?\s\d+\+[\d\.]+", re.IGNORECASE)
+ocr_config = r"--oem 3 --psm 6"
 
-def extract_signals_from_file(file_path):
+
+def extract_signals_from_file(
+    file_path,
+    rotation=None,
+    enhance=True,
+    noise_reduction=True,
+    adaptive_thresholding=True,
+    aggressive_upsampling=True,
+    auto_best_transformation=True,
+    max_scale=16,
+):
     """
     Extracts signals from an image or pdf file.
     Args:
@@ -43,33 +55,71 @@ def extract_signals_from_file(file_path):
                 roi = image[y : y + h, x : x + w]
                 # Save each ROI in a new file
                 roi_filename = f"roi_{x}_{y}_{w}_{h}.png"
+                match (int(rotation)):
+                    case 90:
+                        roi = cv2.rotate(roi, cv2.ROTATE_90_CLOCKWISE)
+                    case 180:
+                        roi = cv2.rotate(roi, cv2.ROTATE_180)
+                    case 270:
+                        roi = cv2.rotate(roi, cv2.ROTATE_90_COUNTERCLOCKWISE)
+
+                # Enhance image for OCR
+                if enhance:
+                    roi = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+
+                # Apply bilateral filter for noise reduction
+                if noise_reduction:
+                    roi = cv2.bilateralFilter(roi, 9, 75, 75)
+
+                # Apply adaptive thresholding
+                if adaptive_thresholding:
+                    roi = cv2.adaptiveThreshold(
+                        roi,
+                        255,
+                        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                        cv2.THRESH_BINARY,
+                        11,
+                        2,
+                    )
+
+                # Apply a bit more aggressive thresholding after upscaling
+
+                # Detect the best transformation for OCR
+                if aggressive_upsampling:
+                    _, roi = cv2.threshold(
+                        roi, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
+                    )
+
+                if auto_best_transformation:
+                    threshold = detect_best_transformation(roi, max_scale)
+                    if threshold:
+                        roi = cv2.resize(
+                            roi,
+                            None,
+                            fx=threshold if threshold else 1,
+                            fy=threshold if threshold else 1,
+                            interpolation=cv2.INTER_LINEAR,
+                        )
+
                 cv2.imwrite("uploads/" + roi_filename, roi)
-                # Elimina el color amarillo fuera del rectángulo usando la máscara
-                # roi_mask = cv2.bitwise_not(mask_cleaned[y : y + h, x : x + w])
-                # roi = cv2.bitwise_not(roi, roi, mask=roi_mask)
+                # roi = cv2.threshold(roi, 150 if (threshold== None) else threshold[0], 255 if (threshold== None) else threshold[1], cv2.THRESH_BINARY)[1]
 
-                # Upscale ROI for better OCR
-                roi = cv2.resize(roi, None, fx=16, fy=16, interpolation=cv2.INTER_CUBIC)
-                # if(threshold == None):
-                #     threshold = detect_best_transformation(roi)
-                # Enhance and rotate image
-                roi = cv2.threshold(roi, 150 if (threshold== None) else threshold[0], 255 if (threshold== None) else threshold[1], cv2.THRESH_BINARY)[1]
-                roi = cv2.rotate(roi, cv2.ROTATE_90_COUNTERCLOCKWISE)
+                text = pytesseract.image_to_string(roi, config=ocr_config).replace(
+                    "\n", " "
+                )
 
-                # Recognize text in any direction using Tesseract's OCR engine mode and orientation/segmentation mode
-                custom_config = r"--oem 3"
-                text = pytesseract.image_to_string(roi, config=custom_config)
-                
                 signals.append(
                     {
                         "rect": (x, y, w, h),
-                        "text": text.strip().replace("\n", " "),
+                        "text": text,
+                        "title": expression.findall(text),
+                        "size": roi.shape,
                         "image_path": roi_filename,
-                        "threshold": threshold
+                        "scale": threshold,
                     }
                 )
                 # Draw rectangle for debugging
-               # cv2.rectangle(debug_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            # cv2.rectangle(debug_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
         return signals
 
     signals = []
@@ -87,8 +137,9 @@ def extract_signals_from_file(file_path):
 
     return signals
 
-#function to detect the best image transformation for OCR
-def detect_best_transformation(image):
+
+# function to detect the best image transformation for OCR
+def detect_best_transformation(image, max_scale):
     """
     Detects the best image threshold values for OCR by searching for a specific pattern.
     Args:
@@ -96,16 +147,17 @@ def detect_best_transformation(image):
     Returns:
         tuple: (threshold1, threshold2) values.
     """
-    # Use numpy to efficiently generate threshold pairs
-    thresholds1 = np.arange(100, 256, 10)
-    thresholds2 = np.arange(200, 256, 10)
 
-    for i in thresholds1:
-        for j in thresholds2:
-            if i >= j:
-                continue
-            _, transformed = cv2.threshold(image, i, j, cv2.THRESH_BINARY)
-            text = pytesseract.image_to_string(transformed)
-            if re.search(r"TSA\s\d{3}\+\d{2}", text):
-                return (i, j)
+    for k in np.arange(max_scale + 1, 0, -1):
+        if k not in [1, 8, 16, 32]:
+            continue
+        transformed = cv2.resize(
+            image, None, fx=k, fy=k, interpolation=cv2.INTER_LINEAR
+        )
+        text = pytesseract.image_to_string(transformed, config=ocr_config)
+        result = expression.findall(text)
+        print(result, k, len(result) > 0)
+        if len(result) > 0:
+            return k
+
     return None
