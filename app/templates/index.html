@@ -40,55 +40,7 @@
                     </div>
                     <div id="uploadProgressText" class="text-xs text-gray-700 mt-1 text-right">0%</div>
                 </div>
-                <div class="flex">
-                    <div class="flex items-center mb-4">
-                        <select name="rotate" id="rotate"
-                            class="border border-2 border-blue-400 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus-visible:border-blue-500 block p-2.5 ">
-                            <option value="0" {% if request.form.get('rotate', '0' )=='0' %}selected{% endif %}>0°
-                            </option>
-                            <option value="90" {% if request.form.get('rotate')=='90' %}selected{% endif %}>90°</option>
-                            <option value="180" {% if request.form.get('rotate')=='180' %}selected{% endif %}>180°
-                            </option>
-                            <option value="270" {% if request.form.get('rotate')=='270' %}selected{% endif %}>270°
-                            </option>
-                        </select>
-                        <label for="rotate" class="ms-2 text-sm font-medium text-gray-900 ">Rotar imagen</label>
-                    </div>
-                    <div class="flex items-center mb-4 ms-8">
-                        <select name="max_scale" id="max_scale"
-                            class="border border-2 border-blue-400 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus-visible:border-blue-500 block p-2.5 ">
-                            <option value="1" {% if request.form.get('max_scale', '0' )=='1' %}selected{% endif %}>1
-                            </option>
-                            <option value="8" {% if request.form.get('max_scale')=='8' %}selected{% endif %}>8</option>
-                            <option selected value="16" {% if request.form.get('max_scale')=='16' %}selected{% endif %}>16
-                            </option>
-                            <option value="32" {% if request.form.get('max_scale')=='32' %}selected{% endif %}>32
-                            </option>
-                        </select>
-                        <label for="max_scale" class="ms-2 text-sm font-medium text-gray-900 ">Maximo autoescalado</label>
-                    </div>
-                </div>
-                <div class="mb-4">
-                    <label for="auto_best_transformation" class="inline-flex items-center">
-                        <input checked type="checkbox" id="auto_best_transformation" name="auto_best_transformation"
-                            class="form-checkbox h-5 w-5 text-blue-600" {% if
-                            request.form.get('auto_best_transformation') %}checked{% endif %}>
-                        <span class="ml-2 text-sm text-gray-900">Auto Escalado</span>
-                    </label>
-                    <label for="image_enhancement" class="inline-flex items-center">
-                        <input checked type="checkbox" id="image_enhancement" name="image_enhancement"
-                            class="form-checkbox h-5 w-5 text-blue-600" {% if request.form.get('image_enhancement')
-                            %}checked{% endif %}>
-                        <span class="ml-2 text-sm text-gray-900">Mejorar imagen</span>
-                    </label>
-                    <label for="image_noise_reduction" class="inline-flex items-center">
-                        <input checked type="checkbox" id="image_noise_reduction" name="image_noise_reduction"
-                            class="form-checkbox h-5 w-5 text-blue-600" {% if request.form.get('image_noise_reduction')
-                            %}checked{% endif %}>
-                        <span class="ml-2 text-sm text-gray-900">Reducción de ruido</span>
-                    </label>
-
-                </div>
+               
                 <button id="submitBtn" type="submit"
                     class="w-full py-2 px-4 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded-lg transition">Extraer
                     Señales</button>
@@ -104,10 +56,9 @@
                     class="w-24 h-24 object-contain rounded-md mr-6 border border-blue-200 shadow cursor-pointer transition-transform hover:scale-105"
                     onclick="showModal('{{ url_for('static', filename=signal.image_path) }}')" />
                 <div class="flex-1 text-gray-800">
-                    <div class="mb-2"><span class="font-semibold">STA:</span> {{ signal.title | join }}</div>
-                    <div class="mb-2"><span class="font-semibold">Rectángulo:</span> {{ signal.rect }}</div>
-                    <div><span class="font-semibold">Escalado de imagen:</span> {{ signal.scale }}</div>
-                    <div class="mb-2"><span class="text-gray-600">Texto:</span> {{ signal.text }}</div>
+                    <div class="mb-2"><span class="font-semibold">Estación:</span> {{ signal.station }}</div>
+                    <div class="mb-2"><span class="text-gray-600">Referencia:</span> {{ signal.reference }}</div>
+                    <div class="mb-2"><span class="text-gray-600">Información:</span> {{ signal.information }}</div>
                 </div>
             </li>
             {% endfor %}

@@ -10,5 +10,6 @@ __pycache__/
 .gitignore
 Dockerfile
 .dockerignore
+uploads/
 tests/
 README.md

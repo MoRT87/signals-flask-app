@@ -3,3 +3,5 @@ opencv-python
 pytesseract
 pdf2image
 Werkzeug
+lmstudio
+flask[async]

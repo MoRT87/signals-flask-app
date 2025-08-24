@@ -15,7 +15,7 @@ app.config["MAX_CONTENT_LENGTH"] = (
 
 
 @app.route("/", methods=["GET", "POST"])
-def index():
+async def index():
     signals = []
     if request.method == "POST":
         if "file" not in request.files:
@@ -31,15 +31,8 @@ def index():
                 if f.startswith("roi"):
                     os.remove(os.path.join("uploads", f))
 
-            signals = extract_signals_from_file(
-                file_path,
-                request.form.get("rotate"),
-                request.form.get("image_enhancement") == "on",
-                request.form.get("image_noise_reduction") == "on",
-                request.form.get("adaptive_thresholding") == "on",
-                False,
-                request.form.get("auto_best_transformation") == "on",
-                int(request.form.get("max_scale"))
+            signals = await extract_signals_from_file(
+                file_path
             )
             os.remove(file_path)  # Clean up the uploaded file after processing
     return render_template("index.html", signals=signals)

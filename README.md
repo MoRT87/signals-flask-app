@@ -1,6 +1,6 @@
 # Signals Flask App
 
-Este proyecto es una aplicación web construida con Flask que permite a los usuarios cargar imágenes o archivos PDF para extraer señales utilizando técnicas de procesamiento de imágenes y OCR.
+Esta aplicación web permite a los usuarios cargar imágenes o archivos PDF para extraer señales mediante procesamiento de imágenes y OCR, utilizando Flask con soporte para vistas asíncronas.
 
 ## Estructura del Proyecto
 
@@ -8,11 +8,12 @@ Este proyecto es una aplicación web construida con Flask que permite a los usua
 signals-flask-app
 ├── app
 │   ├── __init__.py
-│   ├── routes.py
+│   ├── app.py
 │   ├── utils.py
 │   └── templates
 │       └── index.html
 ├── requirements.txt
+├── Dockerfile
 └── README.md
 ```
 
@@ -37,13 +38,21 @@ signals-flask-app
      source venv/bin/activate
      ```
 
-5. Instala las dependencias:
+5. Instala las dependencias (incluyendo soporte async para Flask):
 
    ```
    pip install -r requirements.txt
    ```
 
+   O manualmente:
+
+   ```
+   pip install "flask[async]" opencv-python pytesseract pdf2image numpy
+   ```
+
 ## Ejecución de la Aplicación
+
+### Local
 
 1. Asegúrate de que el entorno virtual esté activado.
 2. Ejecuta la aplicación Flask:
@@ -52,21 +61,42 @@ signals-flask-app
    flask run
    ```
 
-3. Abre tu navegador y ve a `http://127.0.0.1:5000/` para acceder a la aplicación.
+3. Abre tu navegador y ve a `http://127.0.0.1:5000/`.
+
+### Con Docker
+
+1. Construye la imagen Docker:
+
+   ```
+   docker build -t signals-flask-app .
+   ```
+
+2. Ejecuta el contenedor y accede a su shell si lo deseas:
+
+   ```
+   docker run -it --rm -p 5000:5000 signals-flask-app /bin/bash
+   ```
+
+   Para iniciar la app directamente:
+
+   ```
+   docker run -it --rm -p 5000:5000 signals-flask-app
+   ```
 
 ## Uso
 
-1. En la interfaz de usuario, utiliza el formulario para cargar una imagen o un archivo PDF.
-2. Una vez cargado, la aplicación procesará el archivo y mostrará las señales capturadas en la página.
+1. En la interfaz web, utiliza el formulario para cargar una imagen o PDF.
+2. La aplicación procesará el archivo y mostrará las señales extraídas.
 
 ## Dependencias
 
-Este proyecto utiliza las siguientes bibliotecas:
-
-- Flask
+- Flask (con soporte async)
 - OpenCV
 - pytesseract
 - pdf2image
 - numpy
+- tesseract-ocr (sistema)
+- poppler-utils (sistema)
+- ffmpeg (sistema)
 
-Asegúrate de que todas las dependencias estén instaladas correctamente para que la aplicación funcione sin problemas.
+Asegúrate de instalar las dependencias del sistema si usas la app fuera de un contenedor Docker.

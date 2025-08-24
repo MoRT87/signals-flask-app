@@ -3,9 +3,9 @@ FROM python:3.11-slim
 
 # Instala dependencias del sistema y limpia cache
 RUN apt-get update \
-	&& apt-get install -y --no-install-recommends \
-		tesseract-ocr poppler-utils ffmpeg libsm6 libxext6 \
-	&& rm -rf /var/lib/apt/lists/*
+    && apt-get install -y --no-install-recommends \
+    tesseract-ocr poppler-utils ffmpeg libsm6 libxext6 \
+    && rm -rf /var/lib/apt/lists/*
 
 # Establece el directorio de trabajo
 WORKDIR /app
@@ -19,13 +19,13 @@ RUN pip install --upgrade pip \
 	&& rm -rf ~/.cache/pip
 
 # Copia el resto de la aplicación
-COPY app/ ./app/
+COPY ./app/* /app/
 
 # Crea el directorio uploads y da permisos
-RUN mkdir -p ./app/uploads && chmod 777 ./app/uploads
+RUN mkdir -p ./uploads && chmod +w ./uploads
 
 # Copia las plantillas
-COPY app/templates ./app/templates
+COPY ./app/templates /app/templates
 
 # Expone el puerto de Flask
 EXPOSE 5000
