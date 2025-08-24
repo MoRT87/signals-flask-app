@@ -12,6 +12,8 @@ WORKDIR /app
 
 # Copia solo requirements.txt primero para aprovechar cache
 COPY requirements.txt ./
+# Copia solo requirements.txt primero para aprovechar cache
+COPY requirements.txt ./
 
 # Instala dependencias de Python y limpia cache
 RUN pip install --upgrade pip \
@@ -30,6 +32,7 @@ COPY ./app/templates /app/templates
 # Expone el puerto de Flask
 EXPOSE 5000
 
+# Variables de entorno para Flask
 # Variables de entorno para Flask
 ENV FLASK_APP=app
 ENV FLASK_RUN_HOST=0.0.0.0
