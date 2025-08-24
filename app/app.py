@@ -1,5 +1,8 @@
+
 from flask import Flask, render_template, request, redirect, url_for
 import os
+import shutil
+import uuid
 from .utils import extract_signals_from_file
 
 
@@ -24,15 +27,16 @@ async def index():
         if file.filename == "":
             return redirect(request.url)
         if file:
-            file_path = os.path.join("uploads", file.filename)
+            # Crear subcarpeta única para este request
+            request_id = str(uuid.uuid4())
+            request_folder = os.path.join("uploads", request_id)
+            os.makedirs(request_folder, exist_ok=True)
+            file_path = os.path.join(request_folder, file.filename)
             file.save(file_path)
-            # Remove all roi* files from the static folder
-            for f in os.listdir("uploads"):
-                if f.startswith("roi"):
-                    os.remove(os.path.join("uploads", f))
 
-            signals = await extract_signals_from_file(
-                file_path
-            )
-            os.remove(file_path)  # Clean up the uploaded file after processing
+            try:
+                signals = await extract_signals_from_file(file_path, request_folder)
+            finally:
+                # Limpia la subcarpeta completa después de procesar
+                shutil.rmtree(request_folder, ignore_errors=True)
     return render_template("index.html", signals=signals)

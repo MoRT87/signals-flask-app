@@ -37,5 +37,13 @@ EXPOSE 5000
 ENV FLASK_APP=app
 ENV FLASK_RUN_HOST=0.0.0.0
 
-# Comando para iniciar la app
-CMD ["flask", "run"]
+
+# Instala supervisor para ejecutar múltiples procesos
+RUN apt-get update && apt-get install -y supervisor && rm -rf /var/lib/apt/lists/*
+
+# Copia el archivo de configuración de supervisor
+COPY app/cleanup_thumbnails.py /app/cleanup_thumbnails.py
+COPY app/supervisord.conf /etc/supervisord.conf
+
+# Comando para iniciar supervisor, que lanzará Flask y el script de limpieza
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]

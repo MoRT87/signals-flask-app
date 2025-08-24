@@ -8,10 +8,10 @@ import lmstudio as lms
 
 expression = re.compile(r"STA[\.,]?\s\d+\+[\d\.]+", re.IGNORECASE)
 ocr_config = r"--oem 3 --psm 6"
-lms_host = os.getenv("LMS_HOST", "http://169.254.188.124:1234")
+lms_host = os.getenv("LMS_HOST", "http://localhost:1234")
 
 
-async def extract_signals_from_file(file_path):
+async def extract_signals_from_file(file_path, output_folder="uploads"):
     """
     Extracts signals from an image or pdf file.
     Args:
@@ -41,16 +41,25 @@ async def extract_signals_from_file(file_path):
         )
     
         import asyncio
+        import shutil
+        import time
         tasks = []
         rects = []
+        thumbnails_dir = os.path.join('uploads', 'thumbnails')
+        os.makedirs(thumbnails_dir, exist_ok=True)
+        timestamp = int(time.time())
         for cnt in contours:
             x, y, w, h = cv2.boundingRect(cnt)
             if w > 10 and h > 10:  # filter small rectangles
                 roi = image[y : y + h, x : x + w]
-                roi_filename = f"roi_{x}_{y}_{w}_{h}.png"
-                cv2.imwrite("uploads/" + roi_filename, roi)
+                roi_filename = f"roi_{x}_{y}_{w}_{h}_{timestamp}.png"
+                roi_path = os.path.join(output_folder, roi_filename)
+                cv2.imwrite(roi_path, roi)
+                # Copiar a thumbnails para acceso persistente
+                thumbnail_path = os.path.join(thumbnails_dir, roi_filename)
+                shutil.copy2(roi_path, thumbnail_path)
                 rects.append((x, y, w, h, roi_filename))
-                tasks.append(ocr_with_ollama("uploads/" + roi_filename))
+                tasks.append(ocr_with_gemma(roi_path))
 
         results = await asyncio.gather(*tasks)
         signals = []
@@ -61,7 +70,8 @@ async def extract_signals_from_file(file_path):
                 "reference": signal['reference'],
                 "rect": (x, y, w, h),
                 "information": signal['information'],
-                "image_path": roi_filename,
+                # Miniatura persistente
+                "image_path": f"/thumbnails/{roi_filename}",
             })
         return signals
 
@@ -86,7 +96,7 @@ class SignalSchema(BaseModel):
     information: str
 
 
-async def ocr_with_ollama(
+async def ocr_with_gemma(
     image_path: str,
     model: str = "google/gemma-3-4b",
 ) -> SignalSchema:
