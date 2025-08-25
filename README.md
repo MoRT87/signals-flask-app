@@ -68,20 +68,15 @@ signals-flask-app
 1. Construye la imagen Docker:
 
    ```
-   docker build -t signals-flask-app .
+   docker build -t signals .
    ```
 
 2. Ejecuta el contenedor y accede a su shell si lo deseas:
 
    ```
-   docker run -it --rm -p 5000:5000 signals-flask-app /bin/bash
+   docker run --restart=always -d -e "LMS_HOST=http://localhost:1234" --p 5000:5000 signals
    ```
 
-   Para iniciar la app directamente:
-
-   ```
-   docker run -it --rm -p 5000:5000 signals-flask-app
-   ```
 
 ## Uso
 
