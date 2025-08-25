@@ -97,7 +97,6 @@ signals-flask-app
 - pytesseract
 - pdf2image
 - numpy
-- tesseract-ocr (sistema)
 - poppler-utils (sistema)
 - ffmpeg (sistema)
 

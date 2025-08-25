@@ -1,6 +1,5 @@
 Flask
 opencv-python
-pytesseract
 pdf2image
 Werkzeug
 lmstudio

@@ -4,7 +4,7 @@ FROM python:3.11-slim
 # Instala dependencias del sistema y supervisor en una sola capa
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-        tesseract-ocr poppler-utils ffmpeg libsm6 libxext6 supervisor \
+        poppler-utils ffmpeg libsm6 libxext6 supervisor \
     && rm -rf /var/lib/apt/lists/*
 
 # Establece el directorio de trabajo
