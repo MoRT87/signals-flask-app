@@ -1,13 +1,13 @@
-
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, abort
 import os
 import shutil
 import uuid
 from .utils import extract_signals_from_file
-
+import lmstudio as lms
 
 app = Flask(__name__, static_url_path="/uploads", static_folder="uploads")
 
+lms.configure_default_client(os.getenv("LMS_HOST", "http://localhost:1234"))
 # Configuración de la aplicación
 app.config["UPLOAD_FOLDER"] = "uploads"  # Carpeta para guardar imágenes subidas
 app.config["MAX_CONTENT_LENGTH"] = (
@@ -36,6 +36,9 @@ async def index():
 
             try:
                 signals = await extract_signals_from_file(file_path, request_folder)
+            except Exception as e:
+                app.logger.error(f" {e}")
+                raise e
             finally:
                 # Limpia la subcarpeta completa después de procesar
                 shutil.rmtree(request_folder, ignore_errors=True)

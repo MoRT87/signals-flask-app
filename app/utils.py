@@ -1,14 +1,16 @@
 import cv2
 import os
+from flask import abort
 from pdf2image import convert_from_path
 import numpy as np
 from lmstudio import BaseModel
 import re
+
 import lmstudio as lms
 
 expression = re.compile(r"STA[\.,]?\s\d+\+[\d\.]+", re.IGNORECASE)
 ocr_config = r"--oem 3 --psm 6"
-lms_host = os.getenv("LMS_HOST", "http://localhost:1234")
+
 
 
 async def extract_signals_from_file(file_path, output_folder="uploads"):
@@ -39,13 +41,14 @@ async def extract_signals_from_file(file_path, output_folder="uploads"):
         contours, _ = cv2.findContours(
             mask_cleaned, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
         )
-    
+
         import asyncio
         import shutil
         import time
+
         tasks = []
         rects = []
-        thumbnails_dir = os.path.join('uploads', 'thumbnails')
+        thumbnails_dir = os.path.join("uploads", "thumbnails")
         os.makedirs(thumbnails_dir, exist_ok=True)
         timestamp = int(time.time())
         for cnt in contours:
@@ -65,14 +68,16 @@ async def extract_signals_from_file(file_path, output_folder="uploads"):
         signals = []
         for rect, signal in zip(rects, results):
             x, y, w, h, roi_filename = rect
-            signals.append({
-                "station": signal['station'],
-                "reference": signal['reference'],
-                "rect": (x, y, w, h),
-                "information": signal['information'],
-                # Miniatura persistente
-                "image_path": f"/thumbnails/{roi_filename}",
-            })
+            signals.append(
+                {
+                    "station": signal["station"],
+                    "reference": signal["reference"],
+                    "rect": (x, y, w, h),
+                    "information": signal["information"],
+                    # Miniatura persistente
+                    "image_path": f"/thumbnails/{roi_filename}",
+                }
+            )
         return signals
 
     signals = []
@@ -90,6 +95,7 @@ async def extract_signals_from_file(file_path, output_folder="uploads"):
 
     return signals
 
+
 class SignalSchema(BaseModel):
     station: str
     reference: str
@@ -101,18 +107,19 @@ async def ocr_with_gemma(
     model: str = "google/gemma-3-4b",
 ) -> SignalSchema:
     try:
-
-        m = lms.llm(model)
+        m = lms.llm(model, config=lms.LlmLoadModelConfig(keep_model_in_memory=True))
         image = lms.prepare_image(image_path)
-        chat = lms.Chat("You are a OCR focused AI assistant and provide the information extracted from the image. " \
-        "Please provide the station, reference, and information."\
-            "examples: " \
-            "station: 1234+5678"\
-            "reference: 700-1-12"\
+        chat = lms.Chat(
+            "You are a OCR focused AI assistant and provide the information extracted from the image. "
+            "Please provide the station, reference, and information."
+            "examples: "
+            "station: 1234+5678"
+            "reference: 700-1-12"
             "information: Rest of the information text on the image with station and reference."
         )
         chat.add_user_message(content="", images=[image])
         result = m.respond(chat, response_format=SignalSchema)
         return result.parsed
+
     except Exception as e:
-        raise Exception(status_code=500, detail=f"OCR Error: {e}")
+        raise Exception(500, f"OCR Error: {e} {lms_host}")

@@ -1,7 +1,7 @@
 import os
 import time
 
-THUMBNAILS_DIR = os.path.join(os.path.dirname(__file__), '..', 'uploads', 'thumbnails')
+THUMBNAILS_DIR = os.path.join(os.path.dirname(__file__), 'uploads', 'thumbnails')
 EXPIRE_SECONDS = 10 * 60  # 10 minutos
 
 def cleanup_old_thumbnails():
