@@ -7,7 +7,7 @@ import lmstudio as lms
 
 app = Flask(__name__, static_url_path="/uploads", static_folder="uploads")
 
-lms.configure_default_client(os.getenv("LMS_HOST", "http://localhost:1234"))
+lms.configure_default_client(os.getenv("LMS_HOST", "localhost:1234"))
 # Configuración de la aplicación
 app.config["UPLOAD_FOLDER"] = "uploads"  # Carpeta para guardar imágenes subidas
 app.config["MAX_CONTENT_LENGTH"] = (

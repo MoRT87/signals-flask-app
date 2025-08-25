@@ -1,6 +1,6 @@
 # Signals Flask App
 
-Esta aplicación web permite a los usuarios cargar imágenes o archivos PDF para extraer señales mediante procesamiento de imágenes y OCR, utilizando Flask con soporte para vistas asíncronas.
+Esta aplicación web permite a los usuarios cargar imágenes o archivos PDF para extraer la informacion mediante procesamiento de imágenes y OCR con IA (goole gemma-3-4b), utilizando Flask con soporte para vistas asíncronas.
 
 ## Estructura del Proyecto
 
@@ -52,6 +52,10 @@ signals-flask-app
 
 ## Ejecución de la Aplicación
 
+ - Asegurar tener instalado LM Studio y activado el servidor para aceptar conexiones.
+
+ - LM Studio debe tener el modelo ```google/gemma-3-4b```
+
 ### Local
 
 1. Asegúrate de que el entorno virtual esté activado.
@@ -74,8 +78,10 @@ signals-flask-app
 2. Ejecuta el contenedor y accede a su shell si lo deseas:
 
    ```
-   docker run --restart=always -d -e "LMS_HOST=http://localhost:1234" --p 5000:5000 signals
+   docker run --restart=always -d -e "LMS_HOST=localhost:1234" --p 5000:5000 signals
    ```
+
+3. Abre tu navegador y ve a `http://localhost:5000/`.
 
 
 ## Uso
