@@ -1,11 +1,12 @@
 import cv2
 import os
-from flask import abort
 from pdf2image import convert_from_path
 import numpy as np
 from lmstudio import BaseModel
 import re
-
+import asyncio
+import shutil
+import time
 import lmstudio as lms
 
 expression = re.compile(r"STA[\.,]?\s\d+\+[\d\.]+", re.IGNORECASE)
@@ -41,10 +42,6 @@ async def extract_signals_from_file(file_path, output_folder="uploads"):
         contours, _ = cv2.findContours(
             mask_cleaned, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
         )
-
-        import asyncio
-        import shutil
-        import time
 
         tasks = []
         rects = []
