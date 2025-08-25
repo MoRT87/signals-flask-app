@@ -122,4 +122,4 @@ async def ocr_with_gemma(
         return result.parsed
 
     except Exception as e:
-        raise Exception(500, f"OCR Error: {e} {lms_host}")
+        raise Exception(500, f"OCR Error: {e}")
