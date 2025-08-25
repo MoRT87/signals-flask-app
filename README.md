@@ -73,6 +73,7 @@ signals-flask-app
 
    ```
    docker build -t signals .
+   docker build -t signals .
    ```
 
 2. Ejecuta el contenedor y accede a su shell si lo deseas:
