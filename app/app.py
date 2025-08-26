@@ -37,8 +37,7 @@ async def index():
             try:
                 signals = await extract_signals_from_file(file_path, request_folder)
             except Exception as e:
-                app.logger.error(f" {e}")
-                raise e
+                abort(500, e)
             finally:
                 # Limpia la subcarpeta completa después de procesar
                 shutil.rmtree(request_folder, ignore_errors=True)
