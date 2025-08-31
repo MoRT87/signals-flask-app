@@ -100,8 +100,8 @@ class SignalSchema(BaseModel):
         return self.dict().get(item)
 
 
-async def ocr_with_gemma(
-    image_paths: list[str], model: str = "gemini-2.5-flash"  # "google/gemma-3-4b",
+async def ocr_with_genai(
+    image_paths: list[str], model: str = os.getenv("GENAI_MODEL", "gemini-2.5-flash")
 ) -> SignalSchema:
     # try:
  
