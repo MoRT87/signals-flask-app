@@ -61,7 +61,7 @@ async def extract_signals_from_file(file_path, output_folder="uploads"):
                 rects.append((x, y, w, h, roi_filename))
                 
 
-        results = await ocr_with_gemma(map(lambda x: os.path.join(output_folder, x[4]), rects),)
+        results = await ocr_with_genai(map(lambda x: os.path.join(output_folder, x[4]), rects),)
         for rect, signal in zip(rects, results):
             x, y, w, h, roi_filename = rect
             signals.append(
