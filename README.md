@@ -1,6 +1,7 @@
+
 # Signals Flask App
 
-Esta aplicación web permite a los usuarios cargar imágenes o archivos PDF para extraer la informacion mediante procesamiento de imágenes y OCR con IA (goole gemma-3-4b), utilizando Flask con soporte para vistas asíncronas.
+Esta aplicación web permite a los usuarios cargar imágenes o archivos PDF para extraer información mediante procesamiento de imágenes y OCR con Google Gen AI (gemini-2.5-flash), utilizando Flask con soporte para vistas asíncronas. Incluye limpieza automática de miniaturas y soporte para ejecución en Docker con variables de entorno configurables.
 
 ## Estructura del Proyecto
 
@@ -38,6 +39,7 @@ signals-flask-app
      source venv/bin/activate
      ```
 
+
 5. Instala las dependencias (incluyendo soporte async para Flask):
 
    ```
@@ -50,11 +52,19 @@ signals-flask-app
    pip install "flask[async]" opencv-python pytesseract pdf2image numpy
    ```
 
+## Variables de entorno
+
+Puedes configurar variables de entorno para personalizar la app, por ejemplo:
+
+```
+GENAI_API_KEY=your_api_key
+GENAI_MODEL=gemini-2.5-flash
+FLASK_DEBUG=1
+```
+
+Al usar Docker, puedes pasarlas con `-e` o un archivo `.env`.
+
 ## Ejecución de la Aplicación
-
- - Asegurar tener instalado LM Studio y activado el servidor para aceptar conexiones.
-
- - LM Studio debe tener el modelo ```google/gemma-3-4b```
 
 ### Local
 
@@ -69,17 +79,23 @@ signals-flask-app
 
 ### Con Docker
 
+
 1. Construye la imagen Docker:
 
    ```
-   docker build -t signals .
-   docker build -t signals .
+   docker build -t signals.
    ```
 
-2. Ejecuta el contenedor y accede a su shell si lo deseas:
+2. Ejecuta el contenedor con variables de entorno:
 
    ```
-   docker run --restart=always -d -e "LMS_HOST=localhost:1234" --p 5000:5000 signals
+   docker run --restart=always -d -e GENAI_API_KEY=your_api_key -p 5000:5000 signals
+   ```
+
+   O usando un archivo `.env`:
+
+   ```
+   docker run --env-file .env -p 5000:5000 signals
    ```
 
 3. Abre tu navegador y ve a `http://localhost:5000/`.
@@ -87,17 +103,22 @@ signals-flask-app
 
 ## Uso
 
-1. En la interfaz web, utiliza el formulario para cargar una imagen o PDF.
+1. En la interfaz web, utiliza el formulario para cargar una imagen.
 2. La aplicación procesará el archivo y mostrará las señales extraídas.
+
 
 ## Dependencias
 
 - Flask (con soporte async)
 - OpenCV
-- pytesseract
 - pdf2image
 - numpy
 - poppler-utils (sistema)
 - ffmpeg (sistema)
+- supervisor (solo Docker)
 
-Asegúrate de instalar las dependencias del sistema si usas la app fuera de un contenedor Docker.
+Asegúrate de instalar las dependencias del sistema si usas la app fuera de Docker.
+
+## Limpieza automática de miniaturas
+
+Las miniaturas generadas se almacenan en `uploads/thumbnails` y se eliminan automáticamente después de 10 minutos mediante un proceso de limpieza que corre en segundo plano dentro del contenedor Docker.
