@@ -2,16 +2,16 @@ import cv2
 import os
 from pdf2image import convert_from_path
 import numpy as np
-from lmstudio import BaseModel
 import re
-import asyncio
 import shutil
 import time
-import lmstudio as lms
+from google import genai
+from google.genai import types
+import PIL.Image
+from pydantic import BaseModel
 
 expression = re.compile(r"STA[\.,]?\s\d+\+[\d\.]+", re.IGNORECASE)
 ocr_config = r"--oem 3 --psm 6"
-
 
 
 async def extract_signals_from_file(file_path, output_folder="uploads"):
@@ -59,10 +59,9 @@ async def extract_signals_from_file(file_path, output_folder="uploads"):
                 thumbnail_path = os.path.join(thumbnails_dir, roi_filename)
                 shutil.copy2(roi_path, thumbnail_path)
                 rects.append((x, y, w, h, roi_filename))
-                tasks.append(ocr_with_gemma(roi_path))
+                
 
-        results = await asyncio.gather(*tasks)
-        signals = []
+        results = await ocr_with_gemma(map(lambda x: os.path.join(output_folder, x[4]), rects),)
         for rect, signal in zip(rects, results):
             x, y, w, h, roi_filename = rect
             signals.append(
@@ -97,26 +96,26 @@ class SignalSchema(BaseModel):
     station: str
     reference: str
     information: str
+    def __getitem__(self, item):
+        return self.dict().get(item)
 
 
 async def ocr_with_gemma(
-    image_path: str,
-    model: str = "google/gemma-3-4b",
+    image_paths: list[str], model: str = "gemini-2.5-flash"  # "google/gemma-3-4b",
 ) -> SignalSchema:
-    try:
-        m = lms.llm(model, config=lms.LlmLoadModelConfig(keep_model_in_memory=True))
-        image = lms.prepare_image(image_path)
-        chat = lms.Chat(
-            "You are a OCR focused AI assistant and provide the information extracted from the image. "
-            "Please provide the station, reference, and information."
-            "examples: "
-            "station: 1234+5678"
-            "reference: 700-1-12"
-            "information: Rest of the information text on the image with station and reference."
-        )
-        chat.add_user_message(content="", images=[image])
-        result = m.respond(chat, response_format=SignalSchema)
-        return result.parsed
+    # try:
+ 
 
-    except Exception as e:
-        raise Exception(500, f"OCR Error: {e}")
+    client = genai.Client(api_key=os.getenv("GENAI_API_KEY"))
+    instruct = "You are a OCR focused AI assistant and provide the information extracted from the image. " \
+        "Please provide the station, reference, and information. " \
+        "examples: " \
+        "station: 1234+5678" \
+        "reference: 700-1-12" \
+        "information: Rest of the information text on the image with station and reference."
+    
+    # image = genai.types.Image(image_path)
+
+    config = types.GenerateContentConfig(response_mime_type="application/json", response_schema=list[SignalSchema], system_instruction=instruct)
+    resp = client.models.generate_content(model=model, contents=[*map(lambda x: PIL.Image.open(fp=x), image_paths)], config=config)
+    return resp.parsed

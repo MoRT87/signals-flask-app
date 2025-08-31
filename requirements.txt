@@ -2,5 +2,5 @@ Flask
 opencv-python
 pdf2image
 Werkzeug
-lmstudio
 flask[async]
+google-genai
