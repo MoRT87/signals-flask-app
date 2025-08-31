@@ -15,7 +15,8 @@
     </div>
     <div class="max-w-2xl mx-auto">
         <div class="bg-white p-8 rounded-lg shadow-md mb-8">
-            <form id="mainForm" action="" method="post" enctype="multipart/form-data" onsubmit="uploadWithProgress(event)">
+            <form id="mainForm" action="" method="post" enctype="multipart/form-data"
+                onsubmit="uploadWithProgress(event)">
                 <div class="mb-4">
                     <label for="file" class="block font-semibold mb-2">Selecciona Imagen o PDF (16 MB máx.):</label>
                     <div id="dropzone"
@@ -36,7 +37,8 @@
                 <div id="preview" class="mb-4"></div>
                 <div id="uploadProgressContainer" class="mb-4 hidden">
                     <div class="w-full bg-gray-200 rounded-full h-3">
-                        <div id="uploadProgressBar" class="bg-blue-500 h-3 rounded-full transition-all duration-200" style="width: 0%"></div>
+                        <div id="uploadProgressBar" class="bg-blue-500 h-3 rounded-full transition-all duration-200"
+                            style="width: 0%"></div>
                     </div>
                     <div id="uploadProgressText" class="text-xs text-gray-700 mt-1 text-right">0%</div>
                 </div>
@@ -131,11 +133,7 @@
                     submitBtn.disabled = false;
                     submitBtn.classList.remove('opacity-60', 'cursor-not-allowed');
                     submitBtn.innerText = 'Extraer Señales';
-                    if (xhr.responseText.includes("LM Studio")) {
-                        alert('LM Studio no está disponible.');
-                    } else {
-                        alert(xhr.statusText || 'Opps, ha ocurrido algo inesperado!.');
-                    }
+                    alert(xhr.responseText || xhr.statusText || 'Opps, ha ocurrido algo inesperado!.');
                 }
             };
             xhr.onerror = function (ev) {
