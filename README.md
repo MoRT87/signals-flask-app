@@ -56,10 +56,10 @@ signals-flask-app
 
 Puedes configurar variables de entorno para personalizar la app, por ejemplo:
 
-```
-GENAI_API_KEY=your_api_key
-GENAI_MODEL=gemini-2.5-flash
-FLASK_DEBUG=1
+```python
+GENAI_API_KEY=your_api_key #obligatorio
+GENAI_MODEL=gemini-2.5-flash #opcional
+FLASK_DEBUG=1 #opcional
 ```
 
 Al usar Docker, puedes pasarlas con `-e` o un archivo `.env`.
@@ -80,22 +80,16 @@ Al usar Docker, puedes pasarlas con `-e` o un archivo `.env`.
 ### Con Docker
 
 
-1. Construye la imagen Docker:
+1. Ejecuta el contenedor con variables de entorno:
 
    ```
-   docker build -t signals.
-   ```
-
-2. Ejecuta el contenedor con variables de entorno:
-
-   ```
-   docker run --restart=always -d -e GENAI_API_KEY=your_api_key -p 5000:5000 signals
+   docker run --restart=always -d -e GENAI_API_KEY=your_api_key -p 5000:5000 mort87/signals
    ```
 
    O usando un archivo `.env`:
 
    ```
-   docker run --env-file .env -p 5000:5000 signals
+   docker run --restart=always -d --env-file .env -p 5000:5000 mort87/signals
    ```
 
 3. Abre tu navegador y ve a `http://localhost:5000/`.
