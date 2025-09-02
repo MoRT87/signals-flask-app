@@ -14,16 +14,7 @@ expression = re.compile(r"STA[\.,]?\s\d+\+[\d\.]+", re.IGNORECASE)
 ocr_config = r"--oem 3 --psm 6"
 
 
-async def extract_signals_from_file(file_path, output_folder="uploads"):
-    """
-    Extracts signals from an image or pdf file.
-    Args:
-        file_path (str): Path to the image or pdf file.
-    Returns:
-        list: A list of extracted signals.
-    """
-
-    async def extract_rectangles_and_text(image):
+async def extract_rectangles_and_text(image, output_folder):
 
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
@@ -42,8 +33,7 @@ async def extract_signals_from_file(file_path, output_folder="uploads"):
         contours, _ = cv2.findContours(
             mask_cleaned, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
         )
-
-        tasks = []
+        signals = []
         rects = []
         thumbnails_dir = os.path.join("uploads", "thumbnails")
         os.makedirs(thumbnails_dir, exist_ok=True)
@@ -76,18 +66,27 @@ async def extract_signals_from_file(file_path, output_folder="uploads"):
             )
         return signals
 
+async def extract_signals_from_file(file_path, output_folder="uploads"):
+    """
+    Extracts signals from an image or pdf file.
+    Args:
+        file_path (str): Path to the image or pdf file.
+    Returns:
+        list: A list of extracted signals.
+    """
+
     signals = []
     file_ext = os.path.splitext(file_path)[1].lower()
     if file_ext in [".jpg", ".jpeg", ".png", ".bmp"]:
         image = cv2.imread(file_path)
         if image is not None:
-            signals = await extract_rectangles_and_text(image)
+            signals = await extract_rectangles_and_text(image, output_folder=output_folder)
     elif file_ext == ".pdf":
         pages = convert_from_path(file_path)
         for page in pages:
             image = np.array(page)
             image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-            signals.extend(await extract_rectangles_and_text(image))
+            signals.extend(await extract_rectangles_and_text(image, output_folder=output_folder))
 
     return signals
 
@@ -97,24 +96,23 @@ class SignalSchema(BaseModel):
     reference: str
     information: str
     def __getitem__(self, item):
-        return self.dict().get(item)
+        return self.model_dump().get(item)
 
 
 async def ocr_with_genai(
     image_paths: list[str], model: str = os.getenv("GENAI_MODEL", "gemini-2.5-flash")
-) -> SignalSchema:
-    # try:
- 
-
+) -> list[SignalSchema]:
+    image_paths = [*image_paths]
+    if not image_paths:
+        return image_paths
     client = genai.Client(api_key=os.getenv("GENAI_API_KEY"))
     instruct = "You are a OCR focused AI assistant and provide the information extracted from the image. " \
-        "Please provide the station, reference, and information. " \
+        "Please provide the station, reference, and information. Only return one per image." \
         "examples: " \
         "station: 1234+5678" \
         "reference: 700-1-12" \
         "information: Rest of the information text on the image with station and reference."
     
-    # image = genai.types.Image(image_path)
 
     config = types.GenerateContentConfig(response_mime_type="application/json", response_schema=list[SignalSchema], system_instruction=instruct)
     resp = client.models.generate_content(model=model, contents=[*map(lambda x: PIL.Image.open(fp=x), image_paths)], config=config)
