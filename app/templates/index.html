@@ -18,7 +18,7 @@
             <form id="mainForm" action="" method="post" enctype="multipart/form-data"
                 onsubmit="uploadWithProgress(event)">
                 <div class="mb-4">
-                    <label for="file" class="block font-semibold mb-2">Selecciona Imagen o PDF (16 MB máx.):</label>
+                    <label for="file" class="block font-semibold mb-2">Selecciona Imagen o PDF ({{ max_file_size }} MB máx.):</label>
                     <div id="dropzone"
                         class="flex flex-col items-center justify-center border-2 border-dashed border-blue-400 rounded-lg p-6 bg-blue-50 hover:bg-blue-100 transition cursor-pointer relative"
                         onclick="document.getElementById('file').click()"

@@ -9,9 +9,7 @@ app = Flask(__name__, static_url_path="/uploads", static_folder="uploads")
 
 # Configuración de la aplicación
 app.config["UPLOAD_FOLDER"] = "uploads"  # Carpeta para guardar imágenes subidas
-app.config["MAX_CONTENT_LENGTH"] = (
-    16 * 1024 * 1024
-)  # Limitar el tamaño de archivo a 16 MB
+app.config["MAX_CONTENT_LENGTH"] = (32 * 1024 * 1024)  # Limitar el tamaño de archivo a 32 MB
 
 # Registro de rutas
 
@@ -39,4 +37,4 @@ async def index():
             finally:
                 # Limpia la subcarpeta completa después de procesar
                 shutil.rmtree(request_folder, ignore_errors=True)
-    return render_template("index.html", signals=signals)
+    return render_template("index.html", signals=signals, max_file_size=app.config["MAX_CONTENT_LENGTH"] // (1024 * 1024))
